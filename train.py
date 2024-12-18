@@ -87,7 +87,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         # Rendering based on camera and Gaussian
         render_pkg = render(viewpoint_cam, gaussians, pipe, background)
         # It returns: the rendered image, the points in the viewspace, a visibility filter, the rays (radii) of each point
-        image, viewspace_point_tensor, visibility_filter, radii = render_pkg["render"], render_pkg["viewspace_points"], render_pkg["visibility_filter"], render_pkg["radii"]
+        image, viewspace_point_tensor, visibility_filter, radii, max_weight = render_pkg["render"], render_pkg["viewspace_points"], render_pkg["visibility_filter"], render_pkg["radii"], render_pkg["max_weight"]
         
         # Ground Truth
         gt_image = viewpoint_cam.original_image.cuda()
@@ -157,7 +157,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 gaussians.max_radii2D[visibility_filter] = torch.max(gaussians.max_radii2D[visibility_filter], radii[visibility_filter])
                 gaussians.add_densification_stats(viewspace_point_tensor, visibility_filter)
 
-                new_policy = False
+                new_policy = True
                 if iteration > opt.densify_from_iter and iteration % opt.densification_interval == 0 and new_policy == False:
                     size_threshold = 20 if iteration > opt.opacity_reset_interval else None
                     gaussians.densify_and_prune(opt.densify_grad_threshold, opt.opacity_cull, scene.cameras_extent, size_threshold) # add and remove points
